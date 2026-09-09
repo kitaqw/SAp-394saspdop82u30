@@ -1,23 +1,21 @@
--- Помощник Survival с улучшенной структурой и расширенным GUI
+-- Помощник Survival v4.0 с динамическим обновлением экранов
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 
--- Удаляем старое меню, если оно запущено
 if PlayerGui:FindFirstChild("NDSHelperMenu") then
     PlayerGui.NDSHelperMenu:Destroy()
 end
 
--- Создаем интерфейс (GUI)
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "NDSHelperMenu"
 ScreenGui.ResetOnSpawn = false
 ScreenGui.Parent = PlayerGui
 
--- УВЕЛИЧЕННОЕ И БОЛЕЕ ШИРОКОЕ ОКНО МЕНЮ (Версия 3.0)
+-- МЕНЮ СТАЛО В 2.5 РАЗА ШИРЕ (Ширина 650)
 local MainFrame = Instance.new("Frame")
 MainFrame.Name = "MainFrame"
-MainFrame.Size = UDim2.new(0, 260, 0, 310) -- Ширина увеличена до 260
+MainFrame.Size = UDim2.new(0, 650, 0, 310) 
 MainFrame.Position = UDim2.new(0.05, 0, 0.25, 0)
 MainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
 MainFrame.BorderSizePixel = 2
@@ -30,122 +28,23 @@ MainFrame.Parent = ScreenGui
 local Title = Instance.new("TextLabel")
 Title.Size = UDim2.new(1, 0, 0, 35)
 Title.BackgroundColor3 = Color3.fromRGB(15, 15, 20)
-Title.Text = "SURVIVAL MENU v3.0"
+Title.Text = "SURVIVAL ULTRA MENU v4.0"
 Title.TextColor3 = Color3.fromRGB(255, 255, 255)
 Title.Font = Enum.Font.SourceSansBold
 Title.TextSize = 16
 Title.Parent = MainFrame
 
--- ФУНКЦИЯ ДЛЯ СОЗДАНИЯ КНОПОК
-local function createButton(text, posY, callback)
-    local Button = Instance.new("TextButton")
-    Button.Size = UDim2.new(0, 240, 0, 32)
-    Button.Position = UDim2.new(0, 10, 0, posY)
-    Button.BackgroundColor3 = Color3.fromRGB(45, 45, 50)
-    Button.BorderSizePixel = 1
-    Button.BorderColor3 = Color3.fromRGB(65, 65, 70)
-    Button.Text = text
-    Button.TextColor3 = Color3.fromRGB(255, 255, 255)
-    Button.Font = Enum.Font.SourceSansBold
-    Button.TextSize = 14
-    Button.Parent = MainFrame
-    
-    Button.MouseButton1Click:Connect(callback)
-    return Button
-end
+-- Контейнер для динамического контента (чтобы очищать при обновлении)
+local ContentFrame = Instance.new("Frame")
+ContentFrame.Name = "ContentFrame"
+ContentFrame.Size = UDim2.new(1, 0, 1, -65)
+ContentFrame.Position = UDim2.new(0, 0, 0, 35)
+ContentFrame.BackgroundTransparency = 1
+ContentFrame.Parent = MainFrame
 
--- =======================================================
--- РАЗДЕЛ: ГЛАВНЫЕ ФУНКЦИИ И ТЕЛЕПОРТЫ
--- =======================================================
-local espEnabled = false
-local espBtn = createButton("Включить ESP (Подсветка)", 50, function()
-    espEnabled = not espEnabled
-    if espEnabled then
-        espBtn.Text = "ESP: [АКТИВЕН]"
-        espBtn.BackgroundColor3 = Color3.fromRGB(0, 120, 120)
-        task.spawn(function()
-            while espEnabled do
-                for _, player in pairs(Players:GetPlayers()) do
-                    if player ~= LocalPlayer and player.Character then
-                        if not player.Character:FindFirstChild("ESPHighlight") then
-                            local highlight = Instance.new("Highlight")
-                            highlight.Name = "ESPHighlight"
-                            highlight.FillColor = Color3.fromRGB(0, 255, 255)
-                            highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
-                            highlight.FillTransparency = 0.5
-                            highlight.Parent = player.Character
-                        end
-                    end
-                end
-                task.wait(2)
-            end
-        end)
-    else
-        espBtn.Text = "Включить ESP (Подсветка)"
-        espBtn.BackgroundColor3 = Color3.fromRGB(45, 45, 50)
-        for _, player in pairs(Players:GetPlayers()) do
-            if player.Character and player.Character:FindFirstChild("ESPHighlight") then
-                player.Character.ESPHighlight:Destroy()
-            end
-        end
-    end
-end)
-
-createButton("Телепорт на Остров", 90, function()
-    if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-        LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(-32, 48, 0)
-    end
-end)
-
-createButton("Телепорт в Лобби", 130, function()
-    if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-        LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(-21, 181, 1)
-    end
-end)
-
--- =======================================================
--- РАЗДЕЛ: PLAYER (КНОПКИ ТЕПЕРЬ ТУТ)
--- =======================================================
-local PlayerHeader = Instance.new("TextLabel")
-PlayerHeader.Size = UDim2.new(0, 240, 0, 25)
-PlayerHeader.Position = UDim2.new(0, 10, 0, 175)
-PlayerHeader.BackgroundColor3 = Color3.fromRGB(35, 35, 40)
-PlayerHeader.BorderSizePixel = 1
-PlayerHeader.BorderColor3 = Color3.fromRGB(0, 255, 255)
-PlayerHeader.Text = "👤 PLAYER"
-PlayerHeader.TextColor3 = Color3.fromRGB(0, 255, 255)
-PlayerHeader.Font = Enum.Font.SourceSansBold
-PlayerHeader.TextSize = 14
-PlayerHeader.Parent = MainFrame
-
--- Бег внутри раздела Player
-local speedEnabled = false
-local speedBtn = createButton("Обычный бег (x1)", 210, function()
-    speedEnabled = not speedEnabled
-    if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
-        LocalPlayer.Character.Humanoid.WalkSpeed = speedEnabled and 35 or 16
-        speedBtn.Text = speedEnabled and "Быстрый бег (x2)" or "Обычный бег (x1)"
-        speedBtn.BackgroundColor3 = speedEnabled and Color3.fromRGB(0, 120, 120) or Color3.fromRGB(45, 45, 50)
-    end
-end)
-
--- Прыжок внутри раздела Player
-local jumpEnabled = false
-local jumpBtn = createButton("Обычный прыжок", 250, function()
-    jumpEnabled = not jumpEnabled
-    if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
-        LocalPlayer.Character.Humanoid.JumpPower = jumpEnabled and 100 or 50
-        LocalPlayer.Character.Humanoid.UseJumpPower = true
-        jumpBtn.Text = jumpEnabled and "Супер Прыжок (ВКЛ)" or "Обычный прыжок"
-        jumpBtn.BackgroundColor3 = jumpEnabled and Color3.fromRGB(0, 120, 120) or Color3.fromRGB(45, 45, 50)
-    end
-end)
-
--- =======================================================
--- ИМЯ ИГРОКА СНИЗУ СЛЕВА
--- =======================================================
+-- ИМЯ ИГРОКА СНИЗУ СЛЕВА (Остается всегда)
 local PlayerInfo = Instance.new("TextLabel")
-PlayerInfo.Size = UDim2.new(0, 240, 0, 20)
+PlayerInfo.Size = UDim2.new(0, 300, 0, 20)
 PlayerInfo.Position = UDim2.new(0, 12, 1, -22)
 PlayerInfo.BackgroundTransparency = 1
 PlayerInfo.Text = "Игрок: " .. LocalPlayer.Name
@@ -155,20 +54,131 @@ PlayerInfo.TextSize = 13
 PlayerInfo.TextXAlignment = Enum.TextXAlignment.Left
 PlayerInfo.Parent = MainFrame
 
--- =======================================================
--- АВТО-УВЕДОМЛЕНИЯ О БЕДСТВИЯХ
--- =======================================================
+-- Переменные состояний функций
+local espEnabled = false
+local speedEnabled = false
+local jumpEnabled = false
+
+-- Функции отрисовки экранов
+local showMainMenu, showPlayerSettings
+
+-- 1. ЭКРАН: ГЛАВНОЕ МЕНЮ
+showMainMenu = function()
+    ContentFrame:ClearAllChildren() -- Очищаем старые кнопки
+    
+    -- Кнопка создания элементов (подстроена под ширину 630)
+    local function createBtn(text, posY, callback)
+        local b = Instance.new("TextButton", ContentFrame)
+        b.Size = UDim2.new(0, 630, 0, 35)
+        b.Position = UDim2.new(0, 10, 0, posY)
+        b.BackgroundColor3 = Color3.fromRGB(45, 45, 50)
+        b.Text = text
+        b.TextColor3 = Color3.fromRGB(255, 255, 255)
+        b.Font = Enum.Font.SourceSansBold
+        b.TextSize = 14
+        b.MouseButton1Click:Connect(callback)
+        return b
+    end
+
+    local espBtn = createBtn(espEnabled and "ESP: [АКТИВЕН]" or "Включить ESP (Подсветка)", 15, function()
+        espEnabled = not espEnabled
+        if espEnabled then
+            showMainMenu() -- Обновляем текст
+            task.spawn(function()
+                while espEnabled do
+                    for _, player in pairs(Players:GetPlayers()) do
+                        if player ~= LocalPlayer and player.Character and not player.Character:FindFirstChild("ESPHighlight") then
+                            local h = Instance.new("Highlight", player.Character)
+                            h.Name = "ESPHighlight"
+                            h.FillColor = Color3.fromRGB(0, 255, 255)
+                            h.OutlineColor = Color3.fromRGB(255, 255, 255)
+                            h.FillTransparency = 0.5
+                        end
+                    end
+                    task.wait(2)
+                end
+            end)
+        else
+            for _, player in pairs(Players:GetPlayers()) do
+                if player.Character and player.Character:FindFirstChild("ESPHighlight") then player.Character.ESPHighlight:Destroy() end
+            end
+            showMainMenu()
+        end
+    end)
+    if espEnabled then espBtn.BackgroundColor3 = Color3.fromRGB(0, 120, 120) end
+
+    createBtn("Телепорт на Остров", 60, function()
+        if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(-32, 48, 0) end
+    end)
+
+    createBtn("Телепорт в Лобби", 105, function()
+        if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(-21, 181, 1) end
+    end)
+
+    -- НАЖАТИЕ НА ЭТУ КНОПКУ ОБНОВЛЯЕТ МЕНЮ И ОТКРЫВАЕТ НАСТРОЙКИ БЕГА/ПРЫЖКА
+    local playerTabBtn = createBtn("👤 PLAYER (Нажми для настроек)", 160, function()
+        showPlayerSettings()
+    end)
+    playerTabBtn.BackgroundColor3 = Color3.fromRGB(35, 35, 40)
+    playerTabBtn.TextColor3 = Color3.fromRGB(0, 255, 255)
+end
+
+-- 2. ЭКРАН: НАСТРОЙКИ ИГРОКА (PLAYER)
+showPlayerSettings = function()
+    ContentFrame:ClearAllChildren() -- Очищаем экран телепортов
+    
+    local function createPlayerBtn(text, posY, callback)
+        local b = Instance.new("TextButton", ContentFrame)
+        b.Size = UDim2.new(0, 630, 0, 35)
+        b.Position = UDim2.new(0, 10, 0, posY)
+        b.BackgroundColor3 = Color3.fromRGB(45, 45, 50)
+        b.Text = text
+        b.TextColor3 = Color3.fromRGB(255, 255, 255)
+        b.Font = Enum.Font.SourceSansBold
+        b.TextSize = 14
+        b.MouseButton1Click:Connect(callback)
+        return b
+    end
+
+    -- Настройка бега
+    local speedBtn = createPlayerBtn(speedEnabled and "Быстрый бег (x2)" or "Обычный бег (x1)", 20, function()
+        speedEnabled = not speedEnabled
+        if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+            LocalPlayer.Character.Humanoid.WalkSpeed = speedEnabled and 35 or 16
+            showPlayerSettings() -- Перерисовываем экран настроек для обновления текста
+        end
+    end)
+    if speedEnabled then speedBtn.BackgroundColor3 = Color3.fromRGB(0, 120, 120) end
+
+    -- Настройка прыжка
+    local jumpBtn = createPlayerBtn(jumpEnabled and "Супер Прыжок (ВКЛ)" or "Обычный прыжок", 65, function()
+        jumpEnabled = not jumpEnabled
+        if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+            LocalPlayer.Character.Humanoid.JumpPower = jumpEnabled and 100 or 50
+            LocalPlayer.Character.Humanoid.UseJumpPower = true
+            showPlayerSettings() -- Перерисовываем для обновления текста
+        end
+    end)
+    if jumpEnabled then jumpBtn.BackgroundColor3 = Color3.fromRGB(0, 120, 120) end
+
+    -- Кнопка НАЗАД в главное меню
+    local backBtn = createPlayerBtn("⬅️ Назад в Главное Меню", 150, function()
+        showMainMenu()
+    end)
+    backBtn.BackgroundColor3 = Color3.fromRGB(100, 30, 30)
+end
+
+-- Инициализируем главный экран при старте
+showMainMenu()
+
+-- Авто-уведомления о бедствиях
 pcall(function()
     local mainGui = PlayerGui:WaitForChild("MainGui", 5)
     if mainGui then
         local disasterAlert = mainGui:FindFirstChild("DisasterAlert")
         if disasterAlert then
             disasterAlert:GetPropertyChangedSignal("Text"):Connect(function()
-                game:GetService("StarterGui"):SetCore("SendNotification", {
-                    Title = "🚨 БЕДСТВИЕ!",
-                    Text = disasterAlert.Text,
-                    Duration = 6
-                })
+                game:GetService("StarterGui"):SetCore("SendNotification", {Title = "🚨 БЕДСТВИЕ!", Text = disasterAlert.Text, Duration = 6})
             end)
         end
     end
