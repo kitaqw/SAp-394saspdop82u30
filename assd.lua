@@ -14,10 +14,10 @@ ScreenGui.Name = "NDSHelperMenu"
 ScreenGui.ResetOnSpawn = false
 ScreenGui.Parent = PlayerGui
 
--- УВЕЛИЧЕННОЕ И БОЛЕЕ ШИРОКОЕ ОКНО МЕНЮ
+-- УВЕЛИЧЕННОЕ И БОЛЕЕ ШИРОКОЕ ОКНО МЕНЮ (Версия 3.0)
 local MainFrame = Instance.new("Frame")
 MainFrame.Name = "MainFrame"
-MainFrame.Size = UDim2.new(0, 260, 0, 310) -- Ширина увеличена до 260 для удобства в LDPlayer
+MainFrame.Size = UDim2.new(0, 260, 0, 310) -- Ширина увеличена до 260
 MainFrame.Position = UDim2.new(0.05, 0, 0.25, 0)
 MainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
 MainFrame.BorderSizePixel = 2
@@ -36,10 +36,10 @@ Title.Font = Enum.Font.SourceSansBold
 Title.TextSize = 16
 Title.Parent = MainFrame
 
--- ФУНКЦИЯ ДЛЯ СОЗДАНИЯ КНОПОК (Авто-подгон под ширину окна)
+-- ФУНКЦИЯ ДЛЯ СОЗДАНИЯ КНОПОК
 local function createButton(text, posY, callback)
     local Button = Instance.new("TextButton")
-    Button.Size = UDim2.new(0, 240, 0, 32) -- Кнопки стали шире
+    Button.Size = UDim2.new(0, 240, 0, 32)
     Button.Position = UDim2.new(0, 10, 0, posY)
     Button.BackgroundColor3 = Color3.fromRGB(45, 45, 50)
     Button.BorderSizePixel = 1
@@ -104,7 +104,7 @@ createButton("Телепорт в Лобби", 130, function()
 end)
 
 -- =======================================================
--- РАЗДЕЛ: PLAYER (ФУНКЦИИ ПЕРЕНЕСЕНЫ СЮДА)
+-- РАЗДЕЛ: PLAYER (КНОПКИ ТЕПЕРЬ ТУТ)
 -- =======================================================
 local PlayerHeader = Instance.new("TextLabel")
 PlayerHeader.Size = UDim2.new(0, 240, 0, 25)
@@ -146,7 +146,7 @@ end)
 -- =======================================================
 local PlayerInfo = Instance.new("TextLabel")
 PlayerInfo.Size = UDim2.new(0, 240, 0, 20)
-PlayerInfo.Position = UDim2.new(0, 12, 1, -22) -- Четкая привязка к левому нижнему углу
+PlayerInfo.Position = UDim2.new(0, 12, 1, -22)
 PlayerInfo.BackgroundTransparency = 1
 PlayerInfo.Text = "Игрок: " .. LocalPlayer.Name
 PlayerInfo.TextColor3 = Color3.fromRGB(180, 180, 180)
