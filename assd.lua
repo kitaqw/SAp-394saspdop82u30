@@ -1,10 +1,12 @@
--- Помощник Survival v5.0 с ползунком скорости и оптимизированным размером
+-- ПОЛНОСТЬЮ ПОЧИНЕННЫЙ Помощник Survival v5.1 с ползунком
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 
+-- ИСПРАВЛЕНО: Теперь старое меню ВСЕГДА жестко удаляется перед запуском
 if PlayerGui:FindFirstChild("NDSHelperMenu") then
     PlayerGui.NDSHelperMenu:Destroy()
+    task.wait(0.1)
 end
 
 local ScreenGui = Instance.new("ScreenGui")
@@ -12,7 +14,7 @@ ScreenGui.Name = "NDSHelperMenu"
 ScreenGui.ResetOnSpawn = false
 ScreenGui.Parent = PlayerGui
 
--- МЕНЮ СТАЛО ЧУТЬ ПОМЕНЬШЕ (Ширина 320 вместо 650)
+-- Меню 320 пикселей в ширину
 local MainFrame = Instance.new("Frame")
 MainFrame.Name = "MainFrame"
 MainFrame.Size = UDim2.new(0, 320, 0, 310) 
@@ -28,13 +30,13 @@ MainFrame.Parent = ScreenGui
 local Title = Instance.new("TextLabel")
 Title.Size = UDim2.new(1, 0, 0, 35)
 Title.BackgroundColor3 = Color3.fromRGB(15, 15, 20)
-Title.Text = "SURVIVAL MENU v5.0"
+Title.Text = "SURVIVAL MENU v5.1"
 Title.TextColor3 = Color3.fromRGB(255, 255, 255)
 Title.Font = Enum.Font.SourceSansBold
 Title.TextSize = 16
 Title.Parent = MainFrame
 
--- Контейнер для динамического контента
+-- Контейнер для кнопок
 local ContentFrame = Instance.new("Frame")
 ContentFrame.Name = "ContentFrame"
 ContentFrame.Size = UDim2.new(1, 0, 1, -65)
@@ -42,7 +44,7 @@ ContentFrame.Position = UDim2.new(0, 0, 0, 35)
 ContentFrame.BackgroundTransparency = 1
 ContentFrame.Parent = MainFrame
 
--- ИМЯ ИГРОКА СНИЗУ СЛЕВА
+-- Никнейм игрока снизу
 local PlayerInfo = Instance.new("TextLabel")
 PlayerInfo.Size = UDim2.new(0, 300, 0, 20)
 PlayerInfo.Position = UDim2.new(0, 12, 1, -22)
@@ -54,12 +56,12 @@ PlayerInfo.TextSize = 13
 PlayerInfo.TextXAlignment = Enum.TextXAlignment.Left
 PlayerInfo.Parent = MainFrame
 
--- Переменные состояний функций
+-- Переменные функций
 local espEnabled = false
 local spdMult = 1
 local jumpEnabled = false
 
--- Логика безопасного бега через CFrame (Защита от античита)
+-- Безопасный бег без убийства античитом
 game:GetService("RunService").Stepped:Connect(function()
     pcall(function()
         local c = LocalPlayer.Character
@@ -72,7 +74,7 @@ end)
 
 local showMainMenu, showPlayerSettings
 
--- 1. ЭКРАН: ГЛАВНОЕ МЕНЮ
+-- ЭКРАН 1: ГЛАВНОЕ МЕНЮ
 showMainMenu = function()
     ContentFrame:ClearAllChildren()
     
@@ -96,7 +98,8 @@ showMainMenu = function()
             task.spawn(function()
                 while espEnabled do
                     for _, player in pairs(Players:GetPlayers()) do
-                        if player silent~= LocalPlayer and player.Character and not player.Character:FindFirstChild("ESPHighlight") then
+                        -- ИСПРАВЛЕНО: Опечатка полностью удалена, код стабилен
+                        if player ~= LocalPlayer and player.Character and not player.Character:FindFirstChild("ESPHighlight") then
                             local h = Instance.new("Highlight", player.Character)
                             h.Name = "ESPHighlight"
                             h.FillColor = Color3.fromRGB(0, 255, 255)
@@ -124,18 +127,17 @@ showMainMenu = function()
         if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(-21, 181, 1) end
     end)
 
-    local playerTabBtn = createBtn("👤 PLAYER (Настройки бега)", 160, function()
+    local playerTabBtn = createBtn("👤 PLAYER (Ползунок скорости)", 160, function()
         showPlayerSettings()
     end)
     playerTabBtn.BackgroundColor3 = Color3.fromRGB(35, 35, 40)
     playerTabBtn.TextColor3 = Color3.fromRGB(0, 255, 255)
 end
 
--- 2. ЭКРАН: НАСТРОЙКИ ИГРОКА (ПОЛЗУНОК)
+-- ЭКРАН 2: НАСТРОЙКИ PLAYER
 showPlayerSettings = function()
     ContentFrame:ClearAllChildren()
     
-    -- Текст над ползунком скорости
     local sliderTitle = Instance.new("TextLabel", ContentFrame)
     sliderTitle.Size = UDim2.new(0, 300, 0, 20)
     sliderTitle.Position = UDim2.new(0, 10, 0, 15)
@@ -145,7 +147,6 @@ showPlayerSettings = function()
     sliderTitle.Font = Enum.Font.SourceSansBold
     sliderTitle.TextSize = 14
 
-    -- ПОЛЗУНОК СКОРОСТИ
     local sliderBg = Instance.new("Frame", ContentFrame)
     sliderBg.Size = UDim2.new(0, 300, 0, 10)
     sliderBg.Position = UDim2.new(0, 10, 0, 40)
@@ -153,7 +154,6 @@ showPlayerSettings = function()
 
     local mainBtn = Instance.new("TextButton", sliderBg)
     mainBtn.Size = UDim2.new(0, 16, 0, 20)
-    -- Возвращаем кнопку на прежнее место слайдера
     local startX = ((spdMult - 1) / 4) * 284
     mainBtn.Position = UDim2.new(0, startX, 0, -5)
     mainBtn.BackgroundColor3 = Color3.fromRGB(0, 255, 150)
@@ -168,12 +168,11 @@ showPlayerSettings = function()
         if active then
             local relX = math.clamp(mouse.X - sliderBg.AbsolutePosition.X, 0, sliderBg.AbsoluteSize.X)
             mainBtn.Position = UDim2.new(0, math.clamp(relX - 8, 0, 284), 0, -5)
-            spdMult = 1 + (relX / sliderBg.AbsoluteSize.X) * 4 -- Множитель от 1х до 5х (эквивалент 16-150 WalkSpeed)
+            spdMult = 1 + (relX / sliderBg.AbsoluteSize.X) * 4
             sliderTitle.Text = "Скорость бега: " .. math.floor(16 + (relX / sliderBg.AbsoluteSize.X) * 134)
         end
     end)
 
-    -- Настройка прыжка (Обычная кнопка)
     local function createPlayerBtn(text, posY, callback)
         local b = Instance.new("TextButton", ContentFrame)
         b.Size = UDim2.new(0, 300, 0, 35)
