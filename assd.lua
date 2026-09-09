@@ -1,4 +1,4 @@
--- Расширенный Помощник Survival с вкладками и инфо об игроке
+-- Помощник Survival с улучшенной структурой и расширенным GUI
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
@@ -14,10 +14,10 @@ ScreenGui.Name = "NDSHelperMenu"
 ScreenGui.ResetOnSpawn = false
 ScreenGui.Parent = PlayerGui
 
--- УВЕЛИЧЕННОЕ ГЛАВНОЕ ОКНО МЕНЮ
+-- УВЕЛИЧЕННОЕ И БОЛЕЕ ШИРОКОЕ ОКНО МЕНЮ
 local MainFrame = Instance.new("Frame")
 MainFrame.Name = "MainFrame"
-MainFrame.Size = UDim2.new(0, 220, 0, 320) -- Размер увеличен в ширину и высоту
+MainFrame.Size = UDim2.new(0, 260, 0, 310) -- Ширина увеличена до 260 для удобства в LDPlayer
 MainFrame.Position = UDim2.new(0.05, 0, 0.25, 0)
 MainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
 MainFrame.BorderSizePixel = 2
@@ -30,16 +30,16 @@ MainFrame.Parent = ScreenGui
 local Title = Instance.new("TextLabel")
 Title.Size = UDim2.new(1, 0, 0, 35)
 Title.BackgroundColor3 = Color3.fromRGB(15, 15, 20)
-Title.Text = "SURVIVAL MENU v2.0"
+Title.Text = "SURVIVAL MENU v3.0"
 Title.TextColor3 = Color3.fromRGB(255, 255, 255)
 Title.Font = Enum.Font.SourceSansBold
 Title.TextSize = 16
 Title.Parent = MainFrame
 
--- ФУНКЦИЯ ДЛЯ СОЗДАНИЯ КНОПОК
+-- ФУНКЦИЯ ДЛЯ СОЗДАНИЯ КНОПОК (Авто-подгон под ширину окна)
 local function createButton(text, posY, callback)
     local Button = Instance.new("TextButton")
-    Button.Size = UDim2.new(0, 200, 0, 32) -- Кнопки стали шире под новое окно
+    Button.Size = UDim2.new(0, 240, 0, 32) -- Кнопки стали шире
     Button.Position = UDim2.new(0, 10, 0, posY)
     Button.BackgroundColor3 = Color3.fromRGB(45, 45, 50)
     Button.BorderSizePixel = 1
@@ -104,33 +104,32 @@ createButton("Телепорт в Лобби", 130, function()
 end)
 
 -- =======================================================
--- РАЗДЕЛ: PLAYER (ИГРОК)
+-- РАЗДЕЛ: PLAYER (ФУНКЦИИ ПЕРЕНЕСЕНЫ СЮДА)
 -- =======================================================
--- Создаем визуальную плашку-разделитель "Player"
 local PlayerHeader = Instance.new("TextLabel")
-PlayerHeader.Size = UDim2.new(0, 200, 0, 25)
+PlayerHeader.Size = UDim2.new(0, 240, 0, 25)
 PlayerHeader.Position = UDim2.new(0, 10, 0, 175)
 PlayerHeader.BackgroundColor3 = Color3.fromRGB(35, 35, 40)
 PlayerHeader.BorderSizePixel = 1
 PlayerHeader.BorderColor3 = Color3.fromRGB(0, 255, 255)
-PlayerHeader.Text = "⚙️ КНОПКА PLAYER"
+PlayerHeader.Text = "👤 PLAYER"
 PlayerHeader.TextColor3 = Color3.fromRGB(0, 255, 255)
 PlayerHeader.Font = Enum.Font.SourceSansBold
 PlayerHeader.TextSize = 14
 PlayerHeader.Parent = MainFrame
 
--- Настройки функций внутри блока Player
+-- Бег внутри раздела Player
 local speedEnabled = false
 local speedBtn = createButton("Обычный бег (x1)", 210, function()
     speedEnabled = not speedEnabled
     if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
-        -- Переключаем безопасную скорость, чтобы не убил античит
         LocalPlayer.Character.Humanoid.WalkSpeed = speedEnabled and 35 or 16
         speedBtn.Text = speedEnabled and "Быстрый бег (x2)" or "Обычный бег (x1)"
         speedBtn.BackgroundColor3 = speedEnabled and Color3.fromRGB(0, 120, 120) or Color3.fromRGB(45, 45, 50)
     end
 end)
 
+-- Прыжок внутри раздела Player
 local jumpEnabled = false
 local jumpBtn = createButton("Обычный прыжок", 250, function()
     jumpEnabled = not jumpEnabled
@@ -143,17 +142,17 @@ local jumpBtn = createButton("Обычный прыжок", 250, function()
 end)
 
 -- =======================================================
--- ЭЛЕМЕНТ: ИМЯ ИГРОКА СНИЗУ СЛЕВА
+-- ИМЯ ИГРОКА СНИЗУ СЛЕВА
 -- =======================================================
 local PlayerInfo = Instance.new("TextLabel")
-PlayerInfo.Size = UDim2.new(0, 200, 0, 25)
-PlayerInfo.Position = UDim2.new(0, 10, 1, -25) -- Жестко привязано снизу слева панели
+PlayerInfo.Size = UDim2.new(0, 240, 0, 20)
+PlayerInfo.Position = UDim2.new(0, 12, 1, -22) -- Четкая привязка к левому нижнему углу
 PlayerInfo.BackgroundTransparency = 1
 PlayerInfo.Text = "Игрок: " .. LocalPlayer.Name
-PlayerInfo.TextColor3 = Color3.fromRGB(150, 150, 150)
+PlayerInfo.TextColor3 = Color3.fromRGB(180, 180, 180)
 PlayerInfo.Font = Enum.Font.SourceSansItalic
 PlayerInfo.TextSize = 13
-PlayerInfo.TextXAlignment = Enum.TextXAlignment.Left -- Выравнивание по левому краю
+PlayerInfo.TextXAlignment = Enum.TextXAlignment.Left
 PlayerInfo.Parent = MainFrame
 
 -- =======================================================
