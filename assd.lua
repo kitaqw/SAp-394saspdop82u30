@@ -1,4 +1,4 @@
--- Помощник Survival v4.0 с динамическим обновлением экранов
+-- Помощник Survival v5.0 с ползунком скорости и оптимизированным размером
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
@@ -12,10 +12,10 @@ ScreenGui.Name = "NDSHelperMenu"
 ScreenGui.ResetOnSpawn = false
 ScreenGui.Parent = PlayerGui
 
--- МЕНЮ СТАЛО В 2.5 РАЗА ШИРЕ (Ширина 650)
+-- МЕНЮ СТАЛО ЧУТЬ ПОМЕНЬШЕ (Ширина 320 вместо 650)
 local MainFrame = Instance.new("Frame")
 MainFrame.Name = "MainFrame"
-MainFrame.Size = UDim2.new(0, 650, 0, 310) 
+MainFrame.Size = UDim2.new(0, 320, 0, 310) 
 MainFrame.Position = UDim2.new(0.05, 0, 0.25, 0)
 MainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
 MainFrame.BorderSizePixel = 2
@@ -28,13 +28,13 @@ MainFrame.Parent = ScreenGui
 local Title = Instance.new("TextLabel")
 Title.Size = UDim2.new(1, 0, 0, 35)
 Title.BackgroundColor3 = Color3.fromRGB(15, 15, 20)
-Title.Text = "SURVIVAL ULTRA MENU v4.0"
+Title.Text = "SURVIVAL MENU v5.0"
 Title.TextColor3 = Color3.fromRGB(255, 255, 255)
 Title.Font = Enum.Font.SourceSansBold
 Title.TextSize = 16
 Title.Parent = MainFrame
 
--- Контейнер для динамического контента (чтобы очищать при обновлении)
+-- Контейнер для динамического контента
 local ContentFrame = Instance.new("Frame")
 ContentFrame.Name = "ContentFrame"
 ContentFrame.Size = UDim2.new(1, 0, 1, -65)
@@ -42,7 +42,7 @@ ContentFrame.Position = UDim2.new(0, 0, 0, 35)
 ContentFrame.BackgroundTransparency = 1
 ContentFrame.Parent = MainFrame
 
--- ИМЯ ИГРОКА СНИЗУ СЛЕВА (Остается всегда)
+-- ИМЯ ИГРОКА СНИЗУ СЛЕВА
 local PlayerInfo = Instance.new("TextLabel")
 PlayerInfo.Size = UDim2.new(0, 300, 0, 20)
 PlayerInfo.Position = UDim2.new(0, 12, 1, -22)
@@ -56,20 +56,29 @@ PlayerInfo.Parent = MainFrame
 
 -- Переменные состояний функций
 local espEnabled = false
-local speedEnabled = false
+local spdMult = 1
 local jumpEnabled = false
 
--- Функции отрисовки экранов
+-- Логика безопасного бега через CFrame (Защита от античита)
+game:GetService("RunService").Stepped:Connect(function()
+    pcall(function()
+        local c = LocalPlayer.Character
+        if c and c:FindFirstChild("Humanoid") and c:FindFirstChild("HumanoidRootPart") and c.Humanoid.MoveDirection.Magnitude > 0 and spdMult > 1 then
+            c.Humanoid.WalkSpeed = 16
+            c:TranslateBy(c.Humanoid.MoveDirection * (spdMult - 1) * 0.2)
+        end
+    end)
+end)
+
 local showMainMenu, showPlayerSettings
 
 -- 1. ЭКРАН: ГЛАВНОЕ МЕНЮ
 showMainMenu = function()
-    ContentFrame:ClearAllChildren() -- Очищаем старые кнопки
+    ContentFrame:ClearAllChildren()
     
-    -- Кнопка создания элементов (подстроена под ширину 630)
     local function createBtn(text, posY, callback)
         local b = Instance.new("TextButton", ContentFrame)
-        b.Size = UDim2.new(0, 630, 0, 35)
+        b.Size = UDim2.new(0, 300, 0, 35)
         b.Position = UDim2.new(0, 10, 0, posY)
         b.BackgroundColor3 = Color3.fromRGB(45, 45, 50)
         b.Text = text
@@ -83,11 +92,11 @@ showMainMenu = function()
     local espBtn = createBtn(espEnabled and "ESP: [АКТИВЕН]" or "Включить ESP (Подсветка)", 15, function()
         espEnabled = not espEnabled
         if espEnabled then
-            showMainMenu() -- Обновляем текст
+            showMainMenu()
             task.spawn(function()
                 while espEnabled do
                     for _, player in pairs(Players:GetPlayers()) do
-                        if player ~= LocalPlayer and player.Character and not player.Character:FindFirstChild("ESPHighlight") then
+                        if player silent~= LocalPlayer and player.Character and not player.Character:FindFirstChild("ESPHighlight") then
                             local h = Instance.new("Highlight", player.Character)
                             h.Name = "ESPHighlight"
                             h.FillColor = Color3.fromRGB(0, 255, 255)
@@ -115,21 +124,59 @@ showMainMenu = function()
         if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(-21, 181, 1) end
     end)
 
-    -- НАЖАТИЕ НА ЭТУ КНОПКУ ОБНОВЛЯЕТ МЕНЮ И ОТКРЫВАЕТ НАСТРОЙКИ БЕГА/ПРЫЖКА
-    local playerTabBtn = createBtn("👤 PLAYER (Нажми для настроек)", 160, function()
+    local playerTabBtn = createBtn("👤 PLAYER (Настройки бега)", 160, function()
         showPlayerSettings()
     end)
     playerTabBtn.BackgroundColor3 = Color3.fromRGB(35, 35, 40)
     playerTabBtn.TextColor3 = Color3.fromRGB(0, 255, 255)
 end
 
--- 2. ЭКРАН: НАСТРОЙКИ ИГРОКА (PLAYER)
+-- 2. ЭКРАН: НАСТРОЙКИ ИГРОКА (ПОЛЗУНОК)
 showPlayerSettings = function()
-    ContentFrame:ClearAllChildren() -- Очищаем экран телепортов
+    ContentFrame:ClearAllChildren()
     
+    -- Текст над ползунком скорости
+    local sliderTitle = Instance.new("TextLabel", ContentFrame)
+    sliderTitle.Size = UDim2.new(0, 300, 0, 20)
+    sliderTitle.Position = UDim2.new(0, 10, 0, 15)
+    sliderTitle.Text = "Скорость бега: " .. math.floor(16 + (spdMult-1) * 33.5)
+    sliderTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
+    sliderTitle.BackgroundTransparency = 1
+    sliderTitle.Font = Enum.Font.SourceSansBold
+    sliderTitle.TextSize = 14
+
+    -- ПОЛЗУНОК СКОРОСТИ
+    local sliderBg = Instance.new("Frame", ContentFrame)
+    sliderBg.Size = UDim2.new(0, 300, 0, 10)
+    sliderBg.Position = UDim2.new(0, 10, 0, 40)
+    sliderBg.BackgroundColor3 = Color3.fromRGB(60, 60, 65)
+
+    local mainBtn = Instance.new("TextButton", sliderBg)
+    mainBtn.Size = UDim2.new(0, 16, 0, 20)
+    -- Возвращаем кнопку на прежнее место слайдера
+    local startX = ((spdMult - 1) / 4) * 284
+    mainBtn.Position = UDim2.new(0, startX, 0, -5)
+    mainBtn.BackgroundColor3 = Color3.fromRGB(0, 255, 150)
+    mainBtn.Text = ""
+
+    local mouse = LocalPlayer:GetMouse()
+    local active = false
+    mainBtn.MouseButton1Down:Connect(function() active = true end)
+    game:GetService("UserInputService").InputEnded:Connect(function(input) if input.UserInputType == Enum.UserInputType.MouseButton1 then active = false end end)
+    
+    mouse.Move:Connect(function()
+        if active then
+            local relX = math.clamp(mouse.X - sliderBg.AbsolutePosition.X, 0, sliderBg.AbsoluteSize.X)
+            mainBtn.Position = UDim2.new(0, math.clamp(relX - 8, 0, 284), 0, -5)
+            spdMult = 1 + (relX / sliderBg.AbsoluteSize.X) * 4 -- Множитель от 1х до 5х (эквивалент 16-150 WalkSpeed)
+            sliderTitle.Text = "Скорость бега: " .. math.floor(16 + (relX / sliderBg.AbsoluteSize.X) * 134)
+        end
+    end)
+
+    -- Настройка прыжка (Обычная кнопка)
     local function createPlayerBtn(text, posY, callback)
         local b = Instance.new("TextButton", ContentFrame)
-        b.Size = UDim2.new(0, 630, 0, 35)
+        b.Size = UDim2.new(0, 300, 0, 35)
         b.Position = UDim2.new(0, 10, 0, posY)
         b.BackgroundColor3 = Color3.fromRGB(45, 45, 50)
         b.Text = text
@@ -140,46 +187,20 @@ showPlayerSettings = function()
         return b
     end
 
-    -- Настройка бега
-    local speedBtn = createPlayerBtn(speedEnabled and "Быстрый бег (x2)" or "Обычный бег (x1)", 20, function()
-        speedEnabled = not speedEnabled
-        if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
-            LocalPlayer.Character.Humanoid.WalkSpeed = speedEnabled and 35 or 16
-            showPlayerSettings() -- Перерисовываем экран настроек для обновления текста
-        end
-    end)
-    if speedEnabled then speedBtn.BackgroundColor3 = Color3.fromRGB(0, 120, 120) end
-
-    -- Настройка прыжка
-    local jumpBtn = createPlayerBtn(jumpEnabled and "Супер Прыжок (ВКЛ)" or "Обычный прыжок", 65, function()
+    local jumpBtn = createPlayerBtn(jumpEnabled and "Супер Прыжок (ВКЛ)" or "Обычный прыжок", 75, function()
         jumpEnabled = not jumpEnabled
         if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
             LocalPlayer.Character.Humanoid.JumpPower = jumpEnabled and 100 or 50
             LocalPlayer.Character.Humanoid.UseJumpPower = true
-            showPlayerSettings() -- Перерисовываем для обновления текста
+            showPlayerSettings()
         end
     end)
     if jumpEnabled then jumpBtn.BackgroundColor3 = Color3.fromRGB(0, 120, 120) end
 
-    -- Кнопка НАЗАД в главное меню
     local backBtn = createPlayerBtn("⬅️ Назад в Главное Меню", 150, function()
         showMainMenu()
     end)
-    backBtn.BackgroundColor3 = Color3.fromRGB(100, 30, 30)
+    backBtn.BackgroundColor3 = Color3.fromRGB(120, 30, 30)
 end
 
--- Инициализируем главный экран при старте
 showMainMenu()
-
--- Авто-уведомления о бедствиях
-pcall(function()
-    local mainGui = PlayerGui:WaitForChild("MainGui", 5)
-    if mainGui then
-        local disasterAlert = mainGui:FindFirstChild("DisasterAlert")
-        if disasterAlert then
-            disasterAlert:GetPropertyChangedSignal("Text"):Connect(function()
-                game:GetService("StarterGui"):SetCore("SendNotification", {Title = "🚨 БЕДСТВИЕ!", Text = disasterAlert.Text, Duration = 6})
-            end)
-        end
-    end
-end)
